@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack:2.0.2
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      - SERVICES=s3,dynamodb,apigateway,lambda
+      - DEBUG=0
+      - DATA_DIR=/localstack-data
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - LOCALSTACK_CLEANUP=0
+    volumes:
+      - "localstack-volume:/localstack-data"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./infrastructure/init-localstack.sh:/docker-entrypoint-initaws.d/init.sh"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  localstack-volume:
